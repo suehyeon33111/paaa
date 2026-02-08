@@ -2,8 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta charset="UTF-8">
-<title>폭발!!</title>
+<title>모바일 핵폭탄 폭발</title>
 <style>
   body {
     margin: 0;
@@ -12,6 +11,7 @@
     background: #87ceeb;
     position: relative;
     font-family: sans-serif;
+    touch-action: manipulation; /* 모바일 터치 최적화 */
   }
 
   #ground {
@@ -33,6 +33,7 @@
     background: #f28c8c;
     cursor: pointer;
     z-index: 2;
+    touch-action: manipulation;
   }
 
   #roof {
@@ -71,6 +72,7 @@
     font-size: 16px;
     cursor: pointer;
     z-index: 6;
+    touch-action: manipulation;
   }
 
 </style>
@@ -90,37 +92,22 @@ const resetBtn = document.getElementById('resetBtn');
 const flash = document.getElementById('flash');
 const colors = ['#ff4500','#ffa500','#ffff00','#ff6347','#ffffff'];
 
+// 폭발 함수
 function explodeCenter() {
   house.style.display = 'none';
 
   const centerX = window.innerWidth / 2;
   const centerY = window.innerHeight / 2;
 
-  // 화면 플래시
+  // 플래시 효과
   flash.style.opacity = 1;
   setTimeout(() => { flash.style.opacity = 0; }, 200);
 
-  // 화면 흔들기
-  const body = document.body;
-  let shakeTime = 0;
-  const shake = () => {
-    if(shakeTime < 20){
-      const dx = (Math.random() - 0.5) * 20;
-      const dy = (Math.random() - 0.5) * 20;
-      body.style.transform = `translate(${dx}px, ${dy}px)`;
-      shakeTime++;
-      requestAnimationFrame(shake);
-    } else {
-      body.style.transform = 'translate(0,0)';
-    }
-  }
-  shake();
-
-  // 폭발 조각
   const pieces = [];
-  for(let i=0;i<120;i++){ // 더 많게 해서 핵폭탄 느낌
+  for(let i=0;i<100;i++){
     const piece = document.createElement('div');
     piece.classList.add('explosion');
+
     const size = Math.random()*15 + 10;
     piece.style.width = size + 'px';
     piece.style.height = size + 'px';
@@ -132,7 +119,7 @@ function explodeCenter() {
     const angle = Math.random()*2*Math.PI;
     const speed = Math.random()*15 + 10;
     piece.vx = Math.cos(angle)*speed;
-    piece.vy = Math.sin(angle)*speed - 5; // 약간 위로 튀게
+    piece.vy = Math.sin(angle)*speed - 5;
     piece.gravity = 0.5;
     piece.friction = 0.98;
 
@@ -140,6 +127,7 @@ function explodeCenter() {
     pieces.push(piece);
   }
 
+  // 애니메이션 루프
   function animate() {
     pieces.forEach(p=>{
       p.vy += p.gravity;
@@ -157,15 +145,22 @@ function explodeCenter() {
   animate();
 }
 
-// 집 클릭 -> 중앙 폭발
+// 클릭 및 모바일 터치
 house.addEventListener('click', explodeCenter);
+house.addEventListener('touchstart', (e)=>{
+  e.preventDefault();
+  explodeCenter();
+});
 
 // 복귀 버튼
 resetBtn.addEventListener('click', () => {
+  house.style.display = 'block';
+});
+resetBtn.addEventListener('touchstart', (e)=>{
+  e.preventDefault();
   house.style.display = 'block';
 });
 </script>
 
 </body>
 </html>
-
