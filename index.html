@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta charset="UTF-8">
+<title>중앙 폭발</title>
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
+    background: #87ceeb;
+    position: relative;
+    font-family: sans-serif;
+  }
+
+  #ground {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 100px;
+    background: #4caf50;
+    z-index: 1;
+  }
+
+  #house {
+    position: absolute;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 80px;
+    background: #f28c8c;
+    cursor: pointer;
+    z-index: 2;
+  }
+
+  #roof {
+    position: absolute;
+    top: -40px;
+    left: -20px;
+    width: 120px;
+    height: 40px;
+    background: #d2691e;
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  }
+
+  .explosion {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  #flash {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    opacity: 0;
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  #resetBtn {
+    position: absolute;
+    right: 20px;
+    bottom: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    z-index: 6;
+  }
+
+</style>
+</head>
+<body>
+
+<div id="house">
+  <div id="roof"></div>
+</div>
+<div id="ground"></div>
+<div id="flash"></div>
+<button id="resetBtn">복귀</button>
+
+<script>
+const house = document.getElementById('house');
+const resetBtn = document.getElementById('resetBtn');
+const flash = document.getElementById('flash');
+const colors = ['#ff4500','#ffa500','#ffff00','#ff6347','#ffffff'];
+
+function explodeCenter() {
+  house.style.display = 'none';
+
+  const centerX = window.innerWidth / 2;
+  const centerY = window.innerHeight / 2;
+
+  // 화면 플래시
+  flash.style.opacity = 1;
+  setTimeout(() => { flash.style.opacity = 0; }, 200);
+
+  // 화면 흔들기
+  const body = document.body;
+  let shakeTime = 0;
+  const shake = () => {
+    if(shakeTime < 20){
+      const dx = (Math.random() - 0.5) * 20;
+      const dy = (Math.random() - 0.5) * 20;
+      body.style.transform = `translate(${dx}px, ${dy}px)`;
+      shakeTime++;
+      requestAnimationFrame(shake);
+    } else {
+      body.style.transform = 'translate(0,0)';
+    }
+  }
+  shake();
+
+  // 폭발 조각
+  const pieces = [];
+  for(let i=0;i<120;i++){ // 더 많게 해서 핵폭탄 느낌
+    const piece = document.createElement('div');
+    piece.classList.add('explosion');
+    const size = Math.random()*15 + 10;
+    piece.style.width = size + 'px';
+    piece.style.height = size + 'px';
+    piece.style.background = colors[Math.floor(Math.random()*colors.length)];
+    piece.style.left = centerX - size/2 + 'px';
+    piece.style.top = centerY - size/2 + 'px';
+
+    // 물리 속성
+    const angle = Math.random()*2*Math.PI;
+    const speed = Math.random()*15 + 10;
+    piece.vx = Math.cos(angle)*speed;
+    piece.vy = Math.sin(angle)*speed - 5; // 약간 위로 튀게
+    piece.gravity = 0.5;
+    piece.friction = 0.98;
+
+    document.body.appendChild(piece);
+    pieces.push(piece);
+  }
+
+  function animate() {
+    pieces.forEach(p=>{
+      p.vy += p.gravity;
+      p.vx *= p.friction;
+      p.vy *= p.friction;
+      const left = parseFloat(p.style.left);
+      const top = parseFloat(p.style.top);
+      p.style.left = left + p.vx + 'px';
+      p.style.top = top + p.vy + 'px';
+    });
+    if(pieces.length>0){
+      requestAnimationFrame(animate);
+    }
+  }
+  animate();
+}
+
+// 집 클릭 -> 중앙 폭발
+house.addEventListener('click', explodeCenter);
+
+// 복귀 버튼
+resetBtn.addEventListener('click', () => {
+  house.style.display = 'block';
+});
+</script>
+
+</body>
+</html>
